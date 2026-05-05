@@ -22,8 +22,10 @@ jobs:
       
       - name: Install dependencies
         run: |
+          pip install --upgrade pip
           pip install -r requirements.txt
           pip install bandit pytest flake8
+          pip install -e .  # ← ВАЖНО: Устанавливаем flaskr в editable mode!
       
       - name: Run tests
         run: pytest tests/ -v
@@ -80,11 +82,11 @@ jobs:
         run: |
           mkdir -p zap-reports
           docker run --rm \
-            -v $(pwd)/zap-reports:/zap/wrk:rw \
-            --network host \
+            -v ${{ github.workspace }}/zap-reports:/zap/wrk:rw \
+            --add-host=host.docker.internal:host-gateway \
             ghcr.io/zaproxy/zaproxy:stable \
             zap-baseline.py \
-            -t http://localhost:5000 \
+            -t http://host.docker.internal:5000 \
             -J zap-report.json \
             -r zap-report.html \
             || echo "ZAP scan completed with findings"
